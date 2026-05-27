@@ -1,0 +1,28 @@
+{
+  "name": "jira-clone",
+  "version": "1.0.0",
+  "description": "A Jira clone application where i will use Node.JS as backend, React.JS as frontend and PostgreSQL as datanase with Prisma ORM.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1322harshd/Jira-Clone.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/1322harshd/Jira-Clone/issues"
+  },
+  "homepage": "https://github.com/1322harshd/Jira-Clone#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0"
+  }
+}
