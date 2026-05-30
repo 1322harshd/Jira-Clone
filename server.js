@@ -1,14 +1,9 @@
 import express from 'express';
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from './generated/prisma/client.ts';
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient({
-    adapter: new PrismaPg({
-        connectionString: process.env.DATABASE_URL
-    })
-});
+const prisma = new PrismaClient();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -35,11 +30,13 @@ app.post('/users', async (req, res) => {
         }
 
         const result = await prisma.user.create({
-            data: newUser
+            data: newUser 
+            
         });
 
+        console.log("User created Successfully!");
         res.status(201).json("User created successfully."); }
-
+       
         catch(error){
             console.error(error);
             res.status(500).json({error: "Internal server error"});
