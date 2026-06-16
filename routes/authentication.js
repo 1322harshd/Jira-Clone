@@ -36,7 +36,14 @@ router.post('/users', async (req, res) => {
        
         catch(error){
             console.error(error);
+
+            if(error.code === "P2002"){
+                return res.status(409).json({
+                    message:"Email already exists",
+                });
+            }else{
             res.status(500).json({error: "Internal server error"});
+        }
         }
 
 });
