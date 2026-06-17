@@ -1,7 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
+import { generateTokens } from '../utils/generateTokens.js';
+
 import 'dotenv/config';
 
 const router = express.Router();
@@ -70,19 +71,29 @@ router.post('/login', async (req,res) => {
         if(!isPasswordValid){
             return res.status(401).json({message: 'Invalid email or password'});
         }
-        
-        const token = jwt.sign(
-            {userId:user.id,email:user.email},
-            process.env.JWT_SECRET,
-            {expiresIn:'1h'}
-        );
+
+    //calling function to generate tokens
+    const {accessToken,refreshToken} = generateTokens(user.id,user.email);
+
+    res.cookie('accessToken',accessToken,{
+        httpOnly:true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 1000
+    });
+
+    res.cookie('refreshToken',refreshToken,{
+        httpOnly:true,
+        secure:process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/refresh',
+    });
 
         return res.status(200).json({
             message:"Login successful. ",
-            token,
             user:{id:user.id, email:user.email}
         });
-
 
     } catch(error){
         console.error("Login error:",error);
