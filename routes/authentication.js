@@ -1,14 +1,11 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../services/dbclient.js';
 import { generateTokens } from '../utils/generateTokens.js';
 
 import 'dotenv/config';
 
 const router = express.Router();
-
-const prisma = new PrismaClient();
-
 //signup route
 router.post('/users', async (req, res) => {
     try{  
@@ -74,6 +71,12 @@ router.post('/login', async (req,res) => {
 
     //calling function to generate tokens
     const {accessToken,refreshToken} = generateTokens(user.id,user.email);
+
+    const saltRounds=10;
+    const hashedToken = await bcrypt.hash(refreshToken,saltRounds);
+
+    //saving refresh token to database
+    await prisma.refreshToken.create
 
     res.cookie('accessToken',accessToken,{
         httpOnly:true,
