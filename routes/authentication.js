@@ -76,7 +76,18 @@ router.post('/login', async (req,res) => {
     const hashedToken = await bcrypt.hash(refreshToken,saltRounds);
 
     //saving refresh token to database
-    await prisma.refreshToken.create
+    await prisma.refreshToken.upsert({
+        where: {userId : user.id},
+        update: {
+            token : hashedToken,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+        create: {
+            token: hashedToken,
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        }
+    });
 
     res.cookie('accessToken',accessToken,{
         httpOnly:true,
