@@ -2,6 +2,9 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import prisma from '../services/dbclient.js';
 import { generateTokens } from '../utils/generateTokens.js';
+import { authenticate } from '../middleware/authenticateToken.js';
+import upload from '../services/imagefileupload.js';
+
 
 import 'dotenv/config';
 
@@ -117,4 +120,57 @@ router.post('/login', async (req,res) => {
 
 });
 
+router.post('/logout',authenticate, async (req,res) => {
+    try{
+        const userId = req.userId;
+
+        await prisma.refreshToken.deleteMany({
+          where: {userId}
+        });
+
+        res.clearCookie('accessToken',{
+            httpOnly:true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite:'lax',
+        });
+
+        res.clearCookie('refreshToken',{
+            httpOnly: true,
+            secure:process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/refresh',
+        });
+
+        return res.status(200).json({ message: 'Logged out successfully'});
+    } catch (error) {
+        console.error('Logout error:',error);
+        return res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+router.post('/displayimage', upload.single('image'), (req,res) => {
+    try{
+        let imagePath;
+
+        if (req.file){
+            imagePath = `/uploads/${req.file.filename}`;
+        }
+
+        else if(req.body.avatarOption){
+            const safePresetName = path.basename(req.body.avatarOption);
+            imagePath = `defaults/avatarts/${safePresetName}`;
+        }
+        else{
+            imagePath = `/defaults/default-avatar.png`;
+        }
+
+        res.status(200).json({
+            success:true,
+            message: req.file? 'Custom photo saved!' : 'Preset/Default avatar assigned',
+            imageUrl:imagePath
+        });
+    }catch (error) {
+        res.status(500).json({ success: false, message: error.message});
+    }
+});
 export default router;
