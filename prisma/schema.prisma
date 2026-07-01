@@ -12,6 +12,7 @@ model User {
   name      String
   email     String   @unique
   password  String
+  image     String @default("/defaults/default-avatar.png")
   createdAt DateTime @default(now())
 
   projects Project[]

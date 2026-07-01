@@ -148,17 +148,29 @@ router.post('/logout',authenticate, async (req,res) => {
     }
 });
 
-router.post('/displayimage', upload.single('image'), (req,res) => {
+router.post('/displayimage', authenticate, upload.single('image'), async (req,res) => {
     try{
         let imagePath;
 
         if (req.file){
             imagePath = `/uploads/${req.file.filename}`;
+
+            await prisma.user.update({
+                where: { id: req.userId},
+                data: {image: imagePath}
+            });
+
         }
 
         else if(req.body.avatarOption){
             const safePresetName = path.basename(req.body.avatarOption);
-            imagePath = `defaults/avatarts/${safePresetName}`;
+            imagePath = `defaults/avatars/${safePresetName}`;
+
+            await prisma.user.update({
+                where: { id: req.userId},
+                data: {image: imagePath}
+            });
+            
         }
         else{
             imagePath = `/defaults/default-avatar.png`;
