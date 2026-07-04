@@ -2,8 +2,10 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import prisma from '../services/dbclient.js';
 import { generateTokens } from '../utils/generateTokens.js';
-import { authenticate } from '../middleware/authenticateToken.js';
+import { authenticate ,authMiddleware} from '../middleware/authenticateToken.js';
 import upload from '../services/imagefileupload.js';
+import path from "path";
+import jwt from 'jsonwebtoken';
 
 
 import 'dotenv/config';
@@ -31,6 +33,17 @@ router.post('/users', async (req, res) => {
             data: newUser 
             
         });
+
+        const token = jwt.sign({ userId: result.id }, process.env.JWT_SECRET, {
+        expiresIn: '1d'
+        });
+
+        res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+        });
+
 
         console.log("User created Successfully!");
         res.status(201).json("User created successfully."); }
@@ -148,7 +161,7 @@ router.post('/logout',authenticate, async (req,res) => {
     }
 });
 
-router.post('/displayimage', authenticate, upload.single('image'), async (req,res) => {
+router.post('/displayimage', authMiddleware, upload.single('image'), async (req,res) => {
     try{
         let imagePath;
 
@@ -170,7 +183,7 @@ router.post('/displayimage', authenticate, upload.single('image'), async (req,re
                 where: { id: req.userId},
                 data: {image: imagePath}
             });
-            
+
         }
         else{
             imagePath = `/defaults/default-avatar.png`;
@@ -183,6 +196,7 @@ router.post('/displayimage', authenticate, upload.single('image'), async (req,re
         });
     }catch (error) {
         res.status(500).json({ success: false, message: error.message});
+        console.log(error);
     }
 });
 export default router;
