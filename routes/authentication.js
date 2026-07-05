@@ -199,4 +199,56 @@ router.post('/displayimage', authMiddleware, upload.single('image'), async (req,
         console.log(error);
     }
 });
+
+router.post('/refresh',async (req,res) => {
+    try{
+        const refreshToken = req.cookies.refreshToken;
+
+        if(!refreshToken){
+            return res.status(401).json({message: 'No refresh token provided' });
+        }
+
+        jwt.verify(refreshToken,process.env.JWT_REFRESH_SECRET,async (err,decoded) => {
+            if(err){
+                return res.status(403).json({message: 'Invalid or expired refresh token'});
+            }
+
+            const storedToken = await prisma.refreshToken.findUnique({
+                where: {userId: decoded.userId}
+            });
+
+            if(!storedToken){
+                return res.status(403).json({message: 'Refresh token not found' });
+            }
+
+            if (!isValidRefreshToken){
+                return res.status(403).json({message: 'Invalid refresh token'});
+            }
+
+            const newAccessToken = jwt.sign(
+                {
+                    userId: decoded.userId,
+                    email: decoded.email
+                },
+                process.env.JWT_SECRET,
+                {expiresIn: '1h'}
+            );
+
+            res.cookie('accessToken', newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 1000
+            });
+
+            return res.status(200).json({
+                message: 'Access token refreshed'
+            });
+        });
+    } catch (error) {
+        console.error('Refresh error:', error);
+        return res.status(500).json({ error: 'Internal server error'});
+    }
+});
+
 export default router;
