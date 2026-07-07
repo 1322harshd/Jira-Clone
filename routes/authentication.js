@@ -42,6 +42,7 @@ router.post('/users', async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
+
         });
 
 
@@ -117,7 +118,7 @@ router.post('/login', async (req,res) => {
         secure:process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/refresh',
+        path:'/api/refresh',
     });
 
         return res.status(200).json({
@@ -210,6 +211,7 @@ router.post('/refresh',async (req,res) => {
 
         jwt.verify(refreshToken,process.env.JWT_REFRESH_SECRET,async (err,decoded) => {
             if(err){
+                console.log(err);
                 return res.status(403).json({message: 'Invalid or expired refresh token'});
             }
 
@@ -220,6 +222,11 @@ router.post('/refresh',async (req,res) => {
             if(!storedToken){
                 return res.status(403).json({message: 'Refresh token not found' });
             }
+
+            const isValidRefreshToken = await bcrypt.compare(
+    refreshToken,
+    storedToken.token
+);
 
             if (!isValidRefreshToken){
                 return res.status(403).json({message: 'Invalid refresh token'});
@@ -241,10 +248,15 @@ router.post('/refresh',async (req,res) => {
                 maxAge: 60 * 60 * 1000
             });
 
+            console.log("refresh logic implemented");
+            
             return res.status(200).json({
                 message: 'Access token refreshed'
+                
             });
-        });
+        }); 
+   
+
     } catch (error) {
         console.error('Refresh error:', error);
         return res.status(500).json({ error: 'Internal server error'});
