@@ -29,6 +29,7 @@ router.get('/member-search', authenticate,  async (req,res) => {
             select: {
                 name: true,
                 image:true,
+                id:true,
             }
         });
 
