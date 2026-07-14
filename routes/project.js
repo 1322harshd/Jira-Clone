@@ -17,12 +17,22 @@ router.get('/member-search', authenticate,  async (req,res) => {
             return res.json([]);
         }
 
+        const currentUserId = req.userId; 
+        console.log(`this is current user from member-search ${currentUserId}`);
+
         const results = await prisma.user.findMany({
             where:{
                 name: {
                     contains: String(q),
                     mode: 'insensitive',
                 },
+                //excluding current user
+                 ...(currentUserId && {
+                    id: {
+                        not: currentUserId
+                    }
+                })
+
             },
             take:10,
 
