@@ -52,4 +52,39 @@ router.get('/member-search', authenticate,  async (req,res) => {
 
 });
 
+router.post('/create-project',authenticate, async (req,res) => {
+    const {name, description, members = []} = req.body;
+    const ownerId = req.userId;
+
+
+    try{
+
+
+        const project = await prisma.project.create({
+         data: {
+            name,
+            description,
+            ownerId,
+            members: {
+                    create: [
+                        {
+                            userId: ownerId,
+                            role: "OWNER",
+                        },
+                        ...members.map((userId) => ({
+                            userId,
+                            role: "MEMBER",
+                        })),
+                    ],
+                },
+            },
+        });
+
+        res.status(200).json({message: "Project Created Successfully!"})
+
+    }catch(error){
+     console.log(error)
+    }
+});
+
 export default router;
