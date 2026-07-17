@@ -87,4 +87,46 @@ router.post('/create-project',authenticate, async (req,res) => {
     }
 });
 
+
+router.get('/projects', authenticate, async (req, res) => {
+  try {
+    const result = await prisma.project.findMany({
+  where: {
+    members: {
+      some: {
+        userId: req.userId,
+      },
+    },
+  },
+  include: {
+    members: {
+      where: {
+        userId: {
+          not: req.userId,
+        },
+      },
+      select: {
+        id: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    },
+    tasks: true,
+  },
+});
+
+    res.status(200).json(result);
+    console.log("projects being accessed");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to fetch projects" });
+  }
+});
+
 export default router;
