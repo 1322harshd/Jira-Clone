@@ -129,4 +129,26 @@ router.get('/projects', authenticate, async (req, res) => {
   }
 });
 
+router.get('/project/:id', authenticate, async (req,res) => {
+    const {id} = req.params;
+
+    try{
+        const result = await prisma.project.findUnique({
+
+        where:  {id: id},
+        include: {
+            tasks:true,
+            members:true,
+        }
+    });
+
+    res.status(200).json(result);
+
+}catch(err){
+    console.log(err);
+    res.status(500).json({message: "failed ot fetch project"});
+}
+   
+})
+
 export default router;
