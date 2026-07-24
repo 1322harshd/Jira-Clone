@@ -80,7 +80,7 @@ router.post('/create-project',authenticate, async (req,res) => {
             },
         });
 
-        res.status(200).json({message: "Project Created Successfully!"})
+        res.status(200).json({message: "Project Created Successfully!",projectId:project.id});
 
     }catch(error){
      console.log(error)
@@ -134,13 +134,31 @@ router.get('/project/:id', authenticate, async (req,res) => {
 
     try{
         const result = await prisma.project.findUnique({
-
-        where:  {id: id},
-        include: {
-            tasks:true,
-            members:true,
-        }
-    });
+  where: {
+    id,
+  },
+  include: {
+    tasks: true,
+    members: {
+      where: {
+        userId: {
+          not: req.userId,
+        },
+      },
+      select: {
+        id: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    },
+  },
+});
 
     res.status(200).json(result);
 
@@ -151,4 +169,5 @@ router.get('/project/:id', authenticate, async (req,res) => {
    
 })
 
+router.post
 export default router;
