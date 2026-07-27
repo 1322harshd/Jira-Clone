@@ -169,5 +169,42 @@ router.get('/project/:id', authenticate, async (req,res) => {
    
 })
 
-router.post
+router.get('/projects/:projectId/member-search',authenticate, async (req,res) => {
+    try{
+        const {projectId} = req.params;
+        const {q}  = req.query;
+
+        if(!q){
+            return res.json([]);
+        }
+
+        const users = await prisma.user.findMany({
+            where: {
+                name: {
+                    contains: String(q),
+                    mode: 'insensitive',
+                },
+                id: {
+                    not: req.userId,
+                },
+                projectMembers:{
+                    none:{
+                        projectId,
+                    },
+                },
+            },
+            take:10,
+            select: {
+                id: true,
+                name: true,
+                image: true,
+            },
+        });
+
+        res.json(users);
+     }catch(error){
+        console.log(error);
+        res.status(500).json({message: 'Failed to search members'});
+     }
+});
 export default router;
