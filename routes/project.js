@@ -207,4 +207,27 @@ router.get('/projects/:projectId/member-search',authenticate, async (req,res) =>
         res.status(500).json({message: 'Failed to search members'});
      }
 });
+
+router.post('/projects/:projectId/members',authenticate, async (req,res) => {
+  try{
+    const {projectId} = req.params;
+    const {userIds} = req.body;
+    
+    await prisma.projectMember.createMany({
+      data: userIds.map((userId) => ({
+        userId,
+        projectId,
+        role: "MEMBER",
+      })),
+    });
+
+    res.status(201).json({message:"Members added successfully"});
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({message: "Server Error"});
+  }
+});
+
+
 export default router;
