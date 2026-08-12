@@ -5,8 +5,7 @@ import { authenticate } from '../middleware/authenticateToken.js';
 
 const router = express.Router();
 
-//protecting dashboard route
-router.use(authenticate);
+
 
 router.get('/member-search', authenticate,  async (req,res) => {
     try{

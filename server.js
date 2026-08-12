@@ -2,6 +2,7 @@ import express from 'express';
 import authentication from "./routes/authentication.js";
 import dashboard from "./routes/dashboard.js";
 import project from "./routes/project.js";
+import tasks from "./routes/tasks.js";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/',authentication);
 app.use('/',dashboard);
 app.use('/',project);
+app.use('/',tasks);
 
 
 app.listen(PORT,() => {
