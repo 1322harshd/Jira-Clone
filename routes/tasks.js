@@ -57,6 +57,17 @@ router.post('/createtask/:projectId', async (req,res) => {
 
 router.put('/updatetask/:taskId', async (req,res) => {
     const {taskId} = req.params;
+    const {
+        title,
+        description,
+        priority,
+        status,
+        dueDate,
+        assignedToId,
+    } = req.body;
+
+    const validStatuses = ['TO_DO', 'IN_PROGRESS', 'DONE'];
+    const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
     
     try{
 
@@ -82,13 +93,75 @@ router.put('/updatetask/:taskId', async (req,res) => {
 
         const data = {};
 
-        if (req.body.title !== undefined) data.title = req.body.title;
-        if (req.body.description !== undefined) data.description = req.body.description;
-        if(req.body.priority !== undefined) data.priority = req.body.priority;
-        if (req.body.status !== undefined) data.status = req.body.status;
+        if(title !== undefined){
+            if(typeof title !== 'string' || title.trim() === ''){
+                return res.status(400).json({message: 'Title is required'});
+            }
 
-        if(req.body.dueDate !== undefined){
-            data.dueDate = req.body.dueDate ? new Date(req.body.dueDate) : null;
+            data.title = title.trim();
+        }
+
+        if(description !== undefined){
+            data.description = description === null ? null : String(description);
+        }
+
+        if(priority !== undefined){
+            if(!validPriorities.includes(priority)){
+                return res.status(400).json({message: 'Invalid task priority'});
+            }
+
+            data.priority = priority;
+        }
+
+        if(status !== undefined){
+            if(!validStatuses.includes(status)){
+                return res.status(400).json({message: 'Invalid task status'});
+            }
+
+            data.status = status;
+        }
+
+        if(dueDate !== undefined){
+            if(!dueDate){
+                data.dueDate = null;
+            } else {
+                const parsedDueDate = new Date(dueDate);
+
+                if(Number.isNaN(parsedDueDate.getTime())){
+                    return res.status(400).json({message: 'Invalid due date'});
+                }
+
+                data.dueDate = parsedDueDate;
+            }
+        }
+
+        if(assignedToId !== undefined){
+            const normalizedAssignedToId = assignedToId === null
+                ? null
+                : String(assignedToId);
+
+            if(normalizedAssignedToId !== null){
+                const assignee = await prisma.projectMember.findFirst({
+                    where:{
+                        projectId: task.projectId,
+                        userId: normalizedAssignedToId,
+                    },
+                });
+
+                if(!assignee){
+                    return res.status(400).json({
+                        message: 'Assignee must be a member of this project',
+                    });
+                }
+            }
+
+            data.assignedToId = normalizedAssignedToId;
+        }
+
+        if(Object.keys(data).length === 0){
+            return res.status(400).json({
+                message: 'No fields provided to update',
+            });
         }
 
         const updatedTask = await prisma.task.update({
@@ -104,39 +177,45 @@ router.put('/updatetask/:taskId', async (req,res) => {
             taskId: taskId,
             projectId: updatedTask.projectId,
             userId: req.userId,
+         }).catch((err) => {
+            console.log('Failed to create activity:', err);
          });
-        res.status(201).json({message: "Task Updated Successfully"});
 
-
+        return res.status(200).json({
+            message: "Task Updated Successfully",
+            task: updatedTask,
+        });
 
     }catch(err){
         console.log(err);
-        res.status(500).json({message: 'Server Error'});
+        return res.status(500).json({message: 'Server Error'});
     }
 });
 
-router.put('/updatestatus/:taskId', async (req,res) => {
+router.patch('/updatestatus/:taskId', async (req,res) => {
         const {taskId} = req.params;
-
         try{
+        console.log(`this is status ${req.body.status}`);
         const task = await prisma.task.findFirst({
             where:{
-                taskId: taskId,
+                id: taskId,
                 project:{
                     members:{
-                        userId: req.userId,
+                       some:{
+                         userId: req.userId,
+                       }
                     },
                 },
             },
         });
 
         if(!task){
-            res.status(404).json({message: 'Task Not Found'});
+            return res.status(404).json({message: 'Task Not Found'});
         };
 
         const updatedStatus = await prisma.task.update({
             where:{
-                taskId: taskId,
+                id: taskId,
             },
             data:{
                 status: req.body.status,
@@ -148,10 +227,10 @@ router.put('/updatestatus/:taskId', async (req,res) => {
             message: 'Task Status Updated Successfully',
             taskId: taskId,
             projectId: updatedStatus.projectId,
-            userId: req.userid,
+            userId: req.userId,
         });
 
-        res.status(201).json({message: 'Task Status Updated'});
+        res.status(200).json({message: 'Task Status Updated'});
     }
     catch(err){
         res.status(500).json({message: 'Server Error'});
@@ -159,6 +238,51 @@ router.put('/updatestatus/:taskId', async (req,res) => {
     }
 
 
+});
+
+router.delete('/deletetask/:taskId', async (req,res) => {
+    const {taskId} = req.params;
+
+    try{
+        const Task = await prisma.task.findFirst({
+            where: {
+                id: taskId,
+                project:{
+                    members:{
+                        some:{
+                            userId:req.userId,
+                        },
+                    },
+                },
+            },
+        });
+
+        if(!Task){
+            return res.status(404).json({message: "Task not Found"});
+        }
+
+        await prisma.task.delete({
+            where: {
+                id: taskId,
+            },
+        });
+        
+        createActivity({
+            type:'DELETE_TASK',
+            message:'Task Deleted Successfully',
+            taskId: taskId,
+            projectId: Task.projectId,
+            userId:req.userId
+        }).catch((err) => {
+            console.log('Failed to create activity:', err);
+        });
+
+        res.status(200).json({message: 'Task Deleted'});
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: 'Server Error'});
+    }
 })
 
 export default router;

@@ -116,7 +116,17 @@ router.get('/projects', authenticate, async (req, res) => {
         },
       },
     },
-    tasks: true,
+    tasks: {
+      include: {
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    },
   },
 });
 
@@ -137,7 +147,17 @@ router.get('/project/:id', authenticate, async (req,res) => {
     id,
   },
   include: {
-    tasks: true,
+    tasks: {
+      include: {
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    },
     members: {
       where: {
         userId: {
