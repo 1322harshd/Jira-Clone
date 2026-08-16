@@ -3,6 +3,7 @@ import authentication from "./routes/authentication.js";
 import dashboard from "./routes/dashboard.js";
 import project from "./routes/project.js";
 import tasks from "./routes/tasks.js";
+import comment from "./routes/comment.js";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -33,6 +34,7 @@ app.use('/',authentication);
 app.use('/',dashboard);
 app.use('/',project);
 app.use('/',tasks);
+app.use('/',comment);
 
 
 app.listen(PORT,() => {
