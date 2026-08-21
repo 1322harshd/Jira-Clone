@@ -4,6 +4,8 @@ import dashboard from "./routes/dashboard.js";
 import project from "./routes/project.js";
 import tasks from "./routes/tasks.js";
 import comment from "./routes/comment.js";
+import settings from "./routes/settings.js";
+import search from "./routes/search.js";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -35,6 +37,8 @@ app.use('/',dashboard);
 app.use('/',project);
 app.use('/',tasks);
 app.use('/',comment);
+app.use('/',settings);
+app.use('/',search);
 
 
 app.listen(PORT,() => {

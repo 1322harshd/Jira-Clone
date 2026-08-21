@@ -77,7 +77,7 @@ router.post('/comment/:taskId', async (req,res) => {
 
         createActivity({
             type: 'COMMENT',
-            message: `New Comment`,
+            message: `commented on "${task.title}"`,
             userId:req.userId,
             projectId: task.projectId,
             taskId:taskId,
@@ -112,6 +112,7 @@ router.delete('/deletecomment/:commentId', async (req,res) => {
                     task: {
                     select: {
                         id: true,
+                        title: true,
                         projectId: true,
                     },
                     },
@@ -135,7 +136,7 @@ router.delete('/deletecomment/:commentId', async (req,res) => {
 
         createActivity({
             type:'COMMENT DELETED',
-            message: 'Comment Deleted',
+            message: `deleted a comment on "${comment.task.title}"`,
             userId: req.userId,
             projectId: comment.task.projectId,
             taskId:comment.task.id,

@@ -42,7 +42,7 @@ router.post('/createtask/:projectId', async (req,res) => {
 
         createActivity({
             type:'TASK_CREATED',
-            message: 'Task Created',
+            message: `created task "${task.title}"`,
             userId: req.userId,
             projectId: projectId,
             taskId: task.id,
@@ -92,6 +92,7 @@ router.put('/updatetask/:taskId', async (req,res) => {
         }
 
         const data = {};
+        const changes = [];
 
         if(title !== undefined){
             if(typeof title !== 'string' || title.trim() === ''){
@@ -99,10 +100,14 @@ router.put('/updatetask/:taskId', async (req,res) => {
             }
 
             data.title = title.trim();
+            if(data.title !== task.title){
+                changes.push(`renamed to "${data.title}"`);
+            }
         }
 
         if(description !== undefined){
             data.description = description === null ? null : String(description);
+            changes.push('description updated');
         }
 
         if(priority !== undefined){
@@ -111,6 +116,9 @@ router.put('/updatetask/:taskId', async (req,res) => {
             }
 
             data.priority = priority;
+            if(data.priority !== task.priority){
+                changes.push(`priority set to ${data.priority}`);
+            }
         }
 
         if(status !== undefined){
@@ -119,11 +127,15 @@ router.put('/updatetask/:taskId', async (req,res) => {
             }
 
             data.status = status;
+            if(data.status !== task.status){
+                changes.push(`status set to ${data.status}`);
+            }
         }
 
         if(dueDate !== undefined){
             if(!dueDate){
                 data.dueDate = null;
+                changes.push('due date removed');
             } else {
                 const parsedDueDate = new Date(dueDate);
 
@@ -132,8 +144,11 @@ router.put('/updatetask/:taskId', async (req,res) => {
                 }
 
                 data.dueDate = parsedDueDate;
+                changes.push(`due date set to ${parsedDueDate.toDateString()}`);
             }
         }
+
+        let assigneeName;
 
         if(assignedToId !== undefined){
             const normalizedAssignedToId = assignedToId === null
@@ -146,6 +161,11 @@ router.put('/updatetask/:taskId', async (req,res) => {
                         projectId: task.projectId,
                         userId: normalizedAssignedToId,
                     },
+                    include: {
+                        user: {
+                            select: { name: true },
+                        },
+                    },
                 });
 
                 if(!assignee){
@@ -153,9 +173,12 @@ router.put('/updatetask/:taskId', async (req,res) => {
                         message: 'Assignee must be a member of this project',
                     });
                 }
+
+                assigneeName = assignee.user.name;
             }
 
             data.assignedToId = normalizedAssignedToId;
+            changes.push(normalizedAssignedToId ? `assigned to ${assigneeName}` : 'unassigned');
         }
 
         if(Object.keys(data).length === 0){
@@ -173,7 +196,7 @@ router.put('/updatetask/:taskId', async (req,res) => {
 
         createActivity({
             type:'UPDATE_TASK',
-            message: 'Task Updated Successfully',
+            message: `updated task "${updatedTask.title}"${changes.length ? `: ${changes.join(', ')}` : ''}`,
             taskId: taskId,
             projectId: updatedTask.projectId,
             userId: req.userId,
@@ -224,7 +247,7 @@ router.patch('/updatestatus/:taskId', async (req,res) => {
 
         createActivity({
             type: 'UPDATE_TASK_STATUS',
-            message: 'Task Status Updated Successfully',
+            message: `moved "${task.title}" from ${task.status} to ${updatedStatus.status}`,
             taskId: taskId,
             projectId: updatedStatus.projectId,
             userId: req.userId,
@@ -269,7 +292,7 @@ router.delete('/deletetask/:taskId', async (req,res) => {
         
         createActivity({
             type:'DELETE_TASK',
-            message:'Task Deleted Successfully',
+            message: `deleted task "${Task.title}"`,
             taskId: taskId,
             projectId: Task.projectId,
             userId:req.userId

@@ -40,6 +40,8 @@ model Project {
 
   createdAt   DateTime @default(now())
 
+  activities  Activity[]
+
   members ProjectMember[]
 }
 
@@ -115,14 +117,18 @@ enum Role {
   MEMBER
 }
 
-model Activity{
-  id String @id @default(uuid())
-  type String
-  message String
-  userId String
-  user User @relation(fields: [userId], references: [id])
-  projectId String?
-  taskId String?
-  createdAt DateTime @default(now())
+model Activity {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  taskId    String?
+
+  createdAt DateTime @default(now())
 }

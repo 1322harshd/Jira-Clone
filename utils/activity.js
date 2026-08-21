@@ -8,10 +8,15 @@ export async function createActivity({
     projectId = null,
     taskId = null,
 }) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
+
   return await prisma.activity.create({
     data: {
         type,
-        message,
+        message: `${user.name} ${message}`,
         userId,
         projectId,
         taskId,
