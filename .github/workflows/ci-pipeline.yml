@@ -29,3 +29,37 @@ jobs:
                 name: eslint-report
                 path: eslint-report.html
                 retention-days: 5
+
+    test:
+      name: Run Tests
+      runs-on: ubuntu-latest
+      needs: eslint
+      services:
+        postgres:
+          image: postgres:16
+          env:
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: jira_test
+          ports: ['5432','5432']
+          options: >-
+            --health-cmd pg_isready --health-interval 5s
+            --health-timeout 5s --health-retries 10
+      env:
+            DATABASE_URL: postgresql://postgres:postgres@localhost:5432/jira_test
+            JWT_SECRET: test-secret
+            JWT_REFRESH_SECRET: test-refresh-secret
+            NODE_ENV: test
+      steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '22'
+                cache: 'npm'
+            - name: Install Dependencies
+              run: npm ci
+            - name: Create Migrations
+              run: npx prisma generate
+            - name: Run Tests
+              run: npm test
