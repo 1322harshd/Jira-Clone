@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:ci": "eslint . -f html -o eslint-report.html"
   },
   "repository": {
     "type": "git",
