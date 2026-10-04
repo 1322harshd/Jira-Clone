@@ -3,7 +3,6 @@ import 'dotenv/config';
 import prisma from '../services/dbclient.js';
 import { createActivity} from "../utils/activity.js";
 import { authenticate } from "../middleware/authenticateToken.js";
-import { create } from "domain";
 
 const router = express.Router();
 
@@ -67,7 +66,7 @@ router.post('/comment/:taskId', async (req,res) => {
             return res.status(404).json({message: 'Task not found'});
         } 
 
-        const comment = await prisma.comment.create({
+        await prisma.comment.create({
             data: {
                 content: req.body.content,
                 userId: req.userId,
@@ -127,7 +126,7 @@ router.delete('/deletecomment/:commentId', async (req,res) => {
             return res.status(403).json({message: 'No allowed to delete comment'});
         }
 
-        const deleteComment = await prisma.comment.delete({
+        await prisma.comment.delete({
             where:{
                 id: commentId,
             }
