@@ -63,3 +63,16 @@ jobs:
               run: npx prisma generate
             - name: Run Tests
               run: npm test
+
+    build:
+      name: Build Docker Image
+      runs-on: ubuntu-latest
+      needs: test
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
+        - name: Build Image
+          run: docker build -t jira-clone:${{ github.sha }} .
+      
+
+           
