@@ -76,7 +76,7 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Configure AWS Credentials
-          if: github.ref ==  'ref/heads/main'
+          if: github.ref == 'refs/heads/main'
           uses: aws-actions/configure-aws-credentials@v4
           with: 
             role-to-assume: arn:aws:iam::013364996908:role/github-ecr-push-role
