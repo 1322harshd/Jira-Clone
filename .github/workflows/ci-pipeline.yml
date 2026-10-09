@@ -92,7 +92,7 @@ jobs:
         - name: Push Image
           if: github.ref == 'refs/heads/main'
           run: |
-            docker tag jira-clone:${{ github.sha }} ${{ steps.ecr.outputs.registry }}/jira-clone:${{ github.sha }}
+            docker tag prod/jira-clone:${{ github.sha }} ${{ steps.ecr.outputs.registry }}/jira-clone:${{ github.sha }}
             docker push ${{ steps.ecr.outputs.registry }}/prod/jira_clone:${{ github.sha }}   
       
 
