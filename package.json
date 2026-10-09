@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:ci": "eslint . -f html -o eslint-report.html",
+    "test": "prisma migrate deploy && vitest run",
+    "test:local": "dotenv -e .env.test -- npm test",
+    "test:watch": "dotenv -e .env.test -- vitest"
   },
   "repository": {
     "type": "git",
@@ -23,16 +27,23 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
-    "pg": "^8.21.0"
+    "pg": "^8.21.0",
+    "prisma": "^6.19.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.3"
   }
 }

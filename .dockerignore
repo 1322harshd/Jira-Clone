@@ -1,0 +1,11 @@
+node_modules
+.git
+.github
+.env
+.env.*
+tests
+generated
+public/uploads
+eslint-report.html
+vitest.config.js
+eslint.config.js

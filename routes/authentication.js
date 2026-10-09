@@ -6,6 +6,7 @@ import { authenticate ,authMiddleware} from '../middleware/authenticateToken.js'
 import upload from '../services/imagefileupload.js';
 import path from "path";
 import jwt from 'jsonwebtoken';
+import { uploadAvatar } from "../services/cloudinary.js";
 
 
 import 'dotenv/config';
@@ -166,7 +167,7 @@ router.post('/displayimage', authMiddleware, upload.single('image'), async (req,
         let imagePath;
 
         if (req.file){
-            imagePath = `/uploads/${req.file.filename}`;
+           imagePath = await uploadAvatar(req.file.buffer, req.userId);
 
             await prisma.user.update({
                 where: { id: req.userId},
