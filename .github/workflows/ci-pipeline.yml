@@ -68,12 +68,32 @@ jobs:
       name: Build Docker Image
       runs-on: ubuntu-latest
       needs: test
+      permissions:
+        id-token: write
+        contents: read
       steps:
         - name: Checkout Code
           uses: actions/checkout@v4
+
+        - name: Configure AWS Credentials
+          if: github.ref ==  'ref/heads/main'
+          uses: aws-actions/configure-aws-credentials@v4
+          with: 
+            role-to-assume: arn:aws:iam::013364996908:role/github-ecr-push-role
+            aws-region: ap-southeast-2
+        - name: Log in to ECR
+          if: github.ref == 'refs/heads/main'
+          id: ecr
+          uses: aws-actions/amazon-ecr-login@v2
+
         - name: Build Image
           run: docker build -t jira-clone:${{ github.sha }} .
-          
+        
+        - name: Push Image
+          if: github.ref == 'refs/heads/main'
+          run: |
+            docker tag jira-clone:${{ github.sha }} ${{ steps.ecr.outputs.registry }}/jira-clone:${{ github.sha }}
+            docker push ${{ steps.ecr.outputs.registry }}/jira-clone:${{ github.sha }}   
       
 
            
